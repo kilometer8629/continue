@@ -45,26 +45,10 @@ class HighlightedCodeContextProvider(ContextProvider):
         # Used to automatically include the currently open file. Disabled for now.
         return None
 
-        if not self.should_get_fallback_context_item:
-            return None
-
-        visible_files = await self.ide.getVisibleFiles()
-        if len(visible_files) > 0:
-            content = await self.ide.readFile(visible_files[0])
-            rif = RangeInFileWithContents.from_entire_file(visible_files[0], content)
-
-            item = self._rif_to_context_item(rif, 0, True)
-            item.description.name = self._rif_to_name(rif, show_line_nums=False)
-
-            self.last_added_fallback = True
-            return HighlightedRangeContextItem(rif=rif, item=item)
-
-        return None
-
     async def get_selected_items(self) -> List[ContextItem]:
         items = [hr.item for hr in self.highlighted_ranges]
 
-        if len(items) == 0 and (
+        if not items and (
             fallback_item := await self._get_fallback_context_item()
         ):
             items = [fallback_item.item]
@@ -137,15 +121,16 @@ class HighlightedCodeContextProvider(ContextProvider):
     ) -> List[ContextItem]:
         ids_to_delete = [id.item_id for id in ids]
 
-        kept_ranges = []
-        for hr in self.highlighted_ranges:
-            if hr.item.description.id.item_id not in ids_to_delete:
-                kept_ranges.append(hr)
+        kept_ranges = [
+            hr
+            for hr in self.highlighted_ranges
+            if hr.item.description.id.item_id not in ids_to_delete
+        ]
         self.highlighted_ranges = kept_ranges
 
         self._make_sure_is_editing_range()
 
-        if len(self.highlighted_ranges) == 0 and self.last_added_fallback:
+        if not self.highlighted_ranges and self.last_added_fallback:
             self.should_get_fallback_context_item = False
 
         return [hr.item for hr in self.highlighted_ranges]
@@ -189,8 +174,8 @@ class HighlightedCodeContextProvider(ContextProvider):
         range_in_files = [
             rif
             for rif in range_in_files
-            if not os.path.dirname(rif.filepath)
-            == os.path.expanduser("~/.continue/diffs")
+            if os.path.dirname(rif.filepath)
+            != os.path.expanduser("~/.continue/diffs")
         ]
 
         # If not adding highlighted code
@@ -199,7 +184,7 @@ class HighlightedCodeContextProvider(ContextProvider):
                 len(self.highlighted_ranges) == 1
                 and len(range_in_files) <= 1
                 and (
-                    len(range_in_files) == 0
+                    not range_in_files
                     or range_in_files[0].range.start == range_in_files[0].range.end
                 )
             ):

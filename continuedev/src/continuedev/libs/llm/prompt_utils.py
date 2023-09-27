@@ -22,10 +22,12 @@ class MarkdownStyleEncoderDecoder:
     def _suggestions_to_file_edits(self, suggestions: Dict[str, str]) -> List[FileEdit]:
         file_edits: List[FileEdit] = []
         for suggestion_filepath, suggestion in suggestions.items():
-            matching_rifs = list(
-                filter(lambda r: r.filepath == suggestion_filepath, self.range_in_files)
-            )
-            if len(matching_rifs) > 0:
+            if matching_rifs := list(
+                filter(
+                    lambda r: r.filepath == suggestion_filepath,
+                    self.range_in_files,
+                )
+            ):
                 range_in_file = matching_rifs[0]
                 file_edits.append(
                     FileEdit(
@@ -45,7 +47,7 @@ class MarkdownStyleEncoderDecoder:
             completion = "```\n" + completion + "\n```"
         if completion.strip().splitlines()[0].strip() == "```":
             first_filepath = self.range_in_files[0].filepath
-            completion = f"File ({first_filepath})\n" + completion
+            completion = f"File ({first_filepath})\n{completion}"
 
         suggestions: Dict[str, str] = {}
         current_file_lines: List[str] = []
@@ -72,5 +74,4 @@ class MarkdownStyleEncoderDecoder:
 
     def decode(self, completion: str) -> List[FileEdit]:
         suggestions = self._decode_to_suggestions(completion)
-        file_edits = self._suggestions_to_file_edits(suggestions)
-        return file_edits
+        return self._suggestions_to_file_edits(suggestions)

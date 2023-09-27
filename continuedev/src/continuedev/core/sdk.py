@@ -135,13 +135,12 @@ class ContinueSDK(AbstractContinueSDK):
         workspace_path = os.path.join(self.ide.workspace_directory, path)
         if os.path.exists(workspace_path):
             return workspace_path
-        else:
-            # Check if it matches any of the open files, then use that absolute path
-            open_files = await self.ide.getOpenFiles()
-            for open_file in open_files:
-                if os.path.basename(open_file) == os.path.basename(path):
-                    return open_file
-            raise Exception(f"Path {path} does not exist")
+        # Check if it matches any of the open files, then use that absolute path
+        open_files = await self.ide.getOpenFiles()
+        for open_file in open_files:
+            if os.path.basename(open_file) == os.path.basename(path):
+                return open_file
+        raise Exception(f"Path {path} does not exist")
 
     async def run_step(self, step: Step) -> Coroutine[Observation, None, None]:
         return await self.__autopilot._run_singular_step(step)

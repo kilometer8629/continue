@@ -295,9 +295,8 @@ class DefaultModelEditCodeStep(Step):
     def compile_prompt(
         self, file_prefix: str, contents: str, file_suffix: str, sdk: ContinueSDK
     ) -> str:
-        if contents.strip() == "":
-            # Separate prompt for insertion at the cursor, the other tends to cause it to repeat whole file
-            prompt = dedent(
+        if not contents.strip():
+            return dedent(
                 f"""\
 <file_prefix>
 {file_prefix}
@@ -312,8 +311,6 @@ class DefaultModelEditCodeStep(Step):
 
 Please output the code to be inserted at the cursor in order to fulfill the user_request. Do NOT preface your answer or write anything other than code. You should not write any tags, just the code. Make sure to correctly indent the code:"""
             )
-            return prompt
-
         prompt = self._prompt
         if file_prefix.strip() != "":
             prompt += dedent(
@@ -459,10 +456,10 @@ Please output the code to be inserted at the cursor in order to fulfill the user
                             line_to_highlight, 0, line_to_highlight, 0
                         ),
                     ),
-                    "#FFFFFF22" if len(current_block_lines) == 0 else "#00FF0022",
+                    "#FFFFFF22" if not current_block_lines else "#00FF0022",
                 )
 
-            if len(current_block_lines) == 0:
+            if not current_block_lines:
                 # Set this as the start of the next block
                 current_block_start = (
                     rif.range.start.line
@@ -517,7 +514,7 @@ Please output the code to be inserted at the cursor in order to fulfill the user
                 lines_stripped = []
                 index_of_last_line_in_block = first_valid_match[0]
                 while (
-                    len(current_block_lines) > 0
+                    current_block_lines
                     and current_block_lines[-1]
                     == original_lines_below_previous_blocks[
                         index_of_last_line_in_block - 1
@@ -585,7 +582,7 @@ Please output the code to be inserted at the cursor in order to fulfill the user
         i = len(messages) - 1
         deleted = 0
         while i >= 0 and deleted < 2:
-            if messages[i].role == "user" or messages[i].role == "assistant":
+            if messages[i].role in ["user", "assistant"]:
                 messages.pop(i)
                 deleted += 1
             i -= 1
@@ -743,7 +740,7 @@ Please output the code to be inserted at the cursor in order to fulfill the user
 
         if False:
             # If the current block isn't empty, add that suggestion
-            if len(current_block_lines) > 0:
+            if current_block_lines:
                 # We have a chance to back-track here for blank lines that are repeats of the end of the original
                 # Don't want to have the same ending in both the original and the generated, can just leave it there
                 num_to_remove = 0
@@ -807,10 +804,7 @@ Please output the code to be inserted at the cursor in order to fulfill the user
                 RangeInFileWithContents.from_range_in_file(range_in_file, file_contents)
             )
 
-        rif_dict = {}
-        for rif in rif_with_contents:
-            rif_dict[rif.filepath] = rif.contents
-
+        rif_dict = {rif.filepath: rif.contents for rif in rif_with_contents}
         for rif in rif_with_contents:
             await sdk.ide.setSuggestionsLocked(rif.filepath, True)
             await self.stream_rif(rif, sdk)
@@ -857,7 +851,7 @@ class EditFileStep(Step):
     model: Optional[LLM] = None
 
     async def describe(self, models: Models) -> Coroutine[str, None, None]:
-        return "Editing file: " + self.filepath
+        return f"Editing file: {self.filepath}"
 
     async def run(self, sdk: ContinueSDK) -> Coroutine[Observation, None, None]:
         file_contents = await sdk.ide.readFile(self.filepath)
@@ -916,9 +910,7 @@ class UserInputStep(Step):
     manage_own_chat_context: bool = True
 
     async def describe(self, models: Models) -> Coroutine[str, None, None]:
-        if self.description is not None:
-            return self.description
-        return self.user_input
+        return self.description if self.description is not None else self.user_input
 
     async def run(
         self, sdk: ContinueSDK

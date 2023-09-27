@@ -25,23 +25,22 @@ def create_copy(orig_root: str, copy_root: str = None, ignore: Iterable[str] = [
     # TODO: Make ignore a spec, like .gitignore
     if copy_root is None:
         copy_root = Path(orig_root) / ".continue-copy"
-    ignore.append(str(copy_root))
+    ignore.append(copy_root)
     ignore = set(ignore)
 
     os.mkdir(copy_root)
     # I think you're messing up a lot of absolute paths here
     for child in os.listdir():
         if os.path.isdir(child):
-            if child not in ignore:
+            if child in ignore:
+                os.symlink(child, map_path(child))
+            else:
                 os.mkdir(map_path(child))
                 create_copy(Path(orig_root) / child, Path(copy_root) / child, ignore)
-            else:
-                os.symlink(child, map_path(child))
+        elif child not in ignore:
+            shutil.copyfile(child, map_path(child))
         else:
-            if child not in ignore:
-                shutil.copyfile(child, map_path(child))
-            else:
-                os.symlink(child, map_path(child))
+            os.symlink(child, map_path(child))
 
 
 # The whole usage of watchdog here should only be specific to RealFileSystem, you want to have a different "Observer" class for VirtualFileSystem, which would depend on being sent notifications
@@ -76,23 +75,22 @@ class CopyCodebaseEventHandler(PatternMatchingEventHandler):
                 return DeleteDirectory(src)
             elif event.event_type == "created":
                 return AddDirectory(src)
-        else:
-            if event.event_type == "moved":
-                return RenameFile(src, event.dest_path())
-            elif event.event_type == "deleted":
-                return DeleteFile(src)
-            elif event.event_type == "created":
-                contents = self.filesystem.read(src)
-                # Unclear whether it will always pass a "modified" event right after if something like echo "abc" > newfile.txt happens
-                return AddFile(src, contents)
-            elif event.event_type == "modified":
-                # Watchdog doesn't pass the contents or edit, so have to get it myself and diff
-                updated = self.filesystem.read(src)
-                copy_filepath = map_path(src, self.orig_root, self.copy_root)
-                old = self.filesystem.read(copy_filepath)
+        elif event.event_type == "moved":
+            return RenameFile(src, event.dest_path())
+        elif event.event_type == "deleted":
+            return DeleteFile(src)
+        elif event.event_type == "created":
+            contents = self.filesystem.read(src)
+            # Unclear whether it will always pass a "modified" event right after if something like echo "abc" > newfile.txt happens
+            return AddFile(src, contents)
+        elif event.event_type == "modified":
+            # Watchdog doesn't pass the contents or edit, so have to get it myself and diff
+            updated = self.filesystem.read(src)
+            copy_filepath = map_path(src, self.orig_root, self.copy_root)
+            old = self.filesystem.read(copy_filepath)
 
-                edits = calculate_diff(src, updated, old)
-                return SequentialFileSystemEdit(edits)
+            edits = calculate_diff(src, updated, old)
+            return SequentialFileSystemEdit(edits)
         return None
 
     def on_any_event(self, event):

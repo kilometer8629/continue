@@ -125,10 +125,7 @@ def clean_pii_from_any(v: Any) -> Any:
     if isinstance(v, str):
         return clean_pii_from_str(v)
     elif isinstance(v, dict):
-        cleaned_dict = {}
-        for key, value in v.items():
-            cleaned_dict[key] = clean_pii_from_any(value)
-        return cleaned_dict
+        return {key: clean_pii_from_any(value) for key, value in v.items()}
     elif isinstance(v, list):
         return [clean_pii_from_any(x) for x in v]
     else:
@@ -136,9 +133,6 @@ def clean_pii_from_any(v: Any) -> Any:
         try:
             orig_text = str(v)
             cleaned_text = clean_pii_from_str(orig_text)
-            if orig_text != cleaned_text:
-                return cleaned_text
-            else:
-                return v
+            return cleaned_text if orig_text != cleaned_text else v
         except:
             return v

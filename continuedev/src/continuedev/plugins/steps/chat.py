@@ -27,9 +27,7 @@ FREE_USAGE_STEP_NAME = "Please enter OpenAI API key"
 
 
 def add_ellipsis(text: str, max_length: int = 200) -> str:
-    if len(text) > max_length:
-        return text[: max_length - 3] + "..."
-    return text
+    return f"{text[:max_length - 3]}..." if len(text) > max_length else text
 
 
 class SimpleChatStep(Step):
@@ -46,16 +44,14 @@ class SimpleChatStep(Step):
                 sdk.models.default.api_key is None
                 or sdk.models.default.api_key.strip() == ""
             )
-            and len(list(filter(lambda x: not x.step.hide, sdk.history.timeline))) >= 10
-            and len(
-                list(
-                    filter(
-                        lambda x: x.step.name == FREE_USAGE_STEP_NAME,
-                        sdk.history.timeline,
-                    )
+            and len(list(filter(lambda x: not x.step.hide, sdk.history.timeline)))
+            >= 10
+            and not list(
+                filter(
+                    lambda x: x.step.name == FREE_USAGE_STEP_NAME,
+                    sdk.history.timeline,
                 )
             )
-            == 0
         ):
             await sdk.run_step(
                 MessageStep(

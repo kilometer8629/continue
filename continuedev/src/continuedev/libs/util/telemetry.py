@@ -44,7 +44,6 @@ class PostHogLogger:
             self._capture_event(event_name, event_properties)
         except Exception as e:
             print(f"Failed to capture event: {e}")
-            pass
 
     _found_disconnected: bool = False
 
@@ -91,10 +90,9 @@ class PostHogLogger:
 
         if is_connected():
             self.posthog.capture(self.unique_id, event_name, event_properties)
-        else:
-            if not self._found_disconnected:
-                self._found_disconnected = True
-                raise ConnectionError("No internet connection")
+        elif not self._found_disconnected:
+            self._found_disconnected = True
+            raise ConnectionError("No internet connection")
 
 
 posthog_logger = PostHogLogger(api_key=POSTHOG_API_KEY)

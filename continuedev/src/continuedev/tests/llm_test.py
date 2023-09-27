@@ -40,14 +40,14 @@ class TestBaseLLM:
     context_length = 4096
     system_message = "test_system_message"
 
-    def setup_class(cls):
-        cls.llm = LLM(
-            model=cls.model,
-            context_length=cls.context_length,
-            system_message=cls.system_message,
+    def setup_class(self):
+        self.llm = LLM(
+            model=self.model,
+            context_length=self.context_length,
+            system_message=self.system_message,
         )
 
-        start_model(cls.llm)
+        start_model(self.llm)
 
     def test_llm_is_instance(self):
         assert isinstance(self.llm, LLM)

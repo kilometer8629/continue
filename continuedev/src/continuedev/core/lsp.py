@@ -17,10 +17,7 @@ def filepath_to_uri(filename: str) -> str:
 
 
 def uri_to_filepath(uri: str) -> str:
-    if uri.startswith("file://"):
-        return uri[7:]
-    else:
-        return uri
+    return uri[7:] if uri.startswith("file://") else uri
 
 
 PORT = 8099
@@ -67,8 +64,7 @@ class LSPClient:
         }
         self.next_id += 1
         await self.send(body)
-        response = await self.recv()
-        return response
+        return await self.recv()
 
     async def initialize(self):
         initialization_args = {
@@ -303,9 +299,7 @@ class ContinueLSPClient(BaseModel):
 
     @property
     def ready(self):
-        if self.lsp_client is None:
-            return False
-        return self.lsp_client.ready
+        return False if self.lsp_client is None else self.lsp_client.ready
 
     class Config:
         arbitrary_types_allowed = True

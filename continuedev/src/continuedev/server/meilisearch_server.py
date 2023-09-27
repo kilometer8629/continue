@@ -29,16 +29,16 @@ async def download_meilisearch():
     logger.debug("Downloading MeiliSearch...")
 
     if os.name == "nt":
-        download_url = "https://github.com/meilisearch/meilisearch/releases/download/v1.3.2/meilisearch-windows-amd64.exe"
         download_path = getMeilisearchExePath()
         if not os.path.exists(download_path):
+            download_url = "https://github.com/meilisearch/meilisearch/releases/download/v1.3.2/meilisearch-windows-amd64.exe"
             await download_file(download_url, download_path)
-            # subprocess.run(
-            #     f"curl -L {download_url} -o {download_path}",
-            #     shell=True,
-            #     check=True,
-            #     cwd=serverPath,
-            # )
+                    # subprocess.run(
+                    #     f"curl -L {download_url} -o {download_path}",
+                    #     shell=True,
+                    #     check=True,
+                    #     cwd=serverPath,
+                    # )
     else:
         subprocess.run(
             "curl -L https://install.meilisearch.com | sh",
@@ -69,7 +69,7 @@ async def ensure_meilisearch_installed() -> bool:
         else:
             non_existing_paths.add(path)
 
-    if len(non_existing_paths) > 0:
+    if non_existing_paths:
         # Clear the meilisearch binary
         if meilisearchPath in existing_paths:
             try:
@@ -98,9 +98,7 @@ async def check_meilisearch_running() -> bool:
         async with Client("http://localhost:7700") as client:
             try:
                 resp = await client.health()
-                if resp.status != "available":
-                    return False
-                return True
+                return resp.status == "available"
             except Exception:
                 return False
     except Exception:

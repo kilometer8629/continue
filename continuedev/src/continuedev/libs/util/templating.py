@@ -38,11 +38,7 @@ def render_templated_string(template: str) -> str:
             escaped_var = escape_var(var)
             template = template.replace(var, escaped_var)
 
-            if os.path.exists(var):
-                args[escaped_var] = open(var, "r").read()
-            else:
-                args[escaped_var] = ""
-
+            args[escaped_var] = open(var, "r").read() if os.path.exists(var) else ""
     return chevron.render(template, args)
 
 
@@ -63,14 +59,13 @@ def render_prompt_template(
     """
     Render a prompt template.
     """
-    if isinstance(template, str):
-        data = {
-            "history": history,
-            **other_data,
-        }
-        if len(history) > 0 and history[0].role == "system":
-            data["system_message"] = history.pop(0).content
-
-        return chevron.render(template, data)
-    else:
+    if not isinstance(template, str):
         return template(history, other_data)
+    data = {
+        "history": history,
+        **other_data,
+    }
+    if history and history[0].role == "system":
+        data["system_message"] = history.pop(0).content
+
+    return chevron.render(template, data)

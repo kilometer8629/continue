@@ -9,13 +9,13 @@ def anthropic_template_messages(messages: List[Dict[str, str]]) -> str:
 
     # Anthropic prompt must start with a Human turn
     if (
-        len(messages) > 0
+        messages
         and messages[0]["role"] != "user"
         and messages[0]["role"] != "system"
     ):
         prompt += f"{HUMAN_PROMPT} Hello."
     for msg in messages:
-        prompt += f"{HUMAN_PROMPT if (msg['role'] == 'user' or msg['role'] == 'system') else AI_PROMPT} {msg['content']} "
+        prompt += f"{HUMAN_PROMPT if msg['role'] in ['user', 'system'] else AI_PROMPT} {msg['content']} "
 
     prompt += AI_PROMPT
     return prompt
@@ -38,7 +38,7 @@ def template_alpaca_messages(msgs: List[Dict[str, str]]) -> str:
 
 
 def llama2_template_messages(msgs: List[Dict[str, str]]) -> str:
-    if len(msgs) == 0:
+    if not msgs:
         return ""
 
     if msgs[0]["role"] == "assistant":

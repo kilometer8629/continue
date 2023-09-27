@@ -578,10 +578,7 @@ class Autopilot(ContinueBaseModel):
             return
 
         if self.continue_sdk.config.disable_summaries:
-            if backup is not None:
-                title = backup
-            else:
-                title = "New Session"
+            title = backup if backup is not None else "New Session"
         else:
             chat_history = list(
                 map(lambda x: x.dict(), await self.continue_sdk.get_chat_context())

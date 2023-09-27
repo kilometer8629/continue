@@ -142,9 +142,7 @@ class History(ContinueBaseModel):
         return self.current_index
 
     def get_current(self) -> Union[HistoryNode, None]:
-        if self.current_index < 0:
-            return None
-        return self.timeline[self.current_index]
+        return None if self.current_index < 0 else self.timeline[self.current_index]
 
     def get_last_at_depth(
         self, depth: int, include_current: bool = False
@@ -171,9 +169,7 @@ class History(ContinueBaseModel):
         if self.has_future():
             self.current_index += 1
             current_state = self.get_current()
-            if current_state is None:
-                return None
-            return current_state.step
+            return None if current_state is None else current_state.step
         return None
 
     def get_current_index(self) -> int:
@@ -187,9 +183,7 @@ class History(ContinueBaseModel):
 
     def last_observation(self) -> Union[Observation, None]:
         state = self.get_last_at_same_depth()
-        if state is None:
-            return None
-        return state.observation
+        return None if state is None else state.observation
 
     def pop_step(self, index: int = None) -> Union[HistoryNode, None]:
         index = index if index is not None else self.current_index
@@ -263,9 +257,7 @@ class ContextItem(BaseModel):
 
     @validator("content", pre=True)
     def content_must_be_string(cls, v):
-        if v is None:
-            return ""
-        return v
+        return "" if v is None else v
 
     editing: bool = False
     editable: bool = False
@@ -353,7 +345,7 @@ class Step(ContinueBaseModel):
     async def describe(self, models: Models) -> Coroutine[str, None, None]:
         if self.description is not None:
             return self.description
-        return "Running step: " + self.name
+        return f"Running step: {self.name}"
 
     def dict(self, *args, **kwargs):
         d = super().dict(*args, **kwargs)
@@ -363,9 +355,7 @@ class Step(ContinueBaseModel):
 
     @validator("name", pre=True, always=True)
     def name_is_class_name(cls, name):
-        if name is None:
-            return cls.__name__
-        return name
+        return cls.__name__ if name is None else name
 
     async def run(self, sdk: ContinueSDK) -> Coroutine[Observation, None, None]:
         raise NotImplementedError

@@ -87,9 +87,10 @@ class ChromaIndexManager:
                 continue  # lol
             filename = doc.extra_info["filename"]
             chunks[filename] = len(text_chunks)
-            for i, text in enumerate(text_chunks):
-                doc_chunks.append(Document(text, doc_id=f"{filename}::{i}"))
-
+            doc_chunks.extend(
+                Document(text, doc_id=f"{filename}::{i}")
+                for i, text in enumerate(text_chunks)
+            )
         with open(f"{self.index_dir}/metadata.json", "w") as f:
             json.dump({"commit": self.current_commit, "chunks": chunks}, f, indent=4)
 

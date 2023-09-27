@@ -69,16 +69,16 @@ class RangeInFileWithContents(RangeInFile):
 
     @staticmethod
     def from_entire_file(filepath: str, content: str) -> "RangeInFileWithContents":
-        lines = content.splitlines()
-        if not lines:
+        if lines := content.splitlines():
+            return RangeInFileWithContents(
+                filepath=filepath,
+                range=Range.from_shorthand(0, 0, len(lines) - 1, len(lines[-1]) - 1),
+                contents=content,
+            )
+        else:
             return RangeInFileWithContents(
                 filepath=filepath, range=Range.from_shorthand(0, 0, 0, 0), contents=""
             )
-        return RangeInFileWithContents(
-            filepath=filepath,
-            range=Range.from_shorthand(0, 0, len(lines) - 1, len(lines[-1]) - 1),
-            contents=content,
-        )
 
     @staticmethod
     def from_range_in_file(rif: RangeInFile, content: str) -> "RangeInFileWithContents":
@@ -145,7 +145,7 @@ class FileSystem(AbstractModel):
         raise NotImplementedError
 
     @classmethod
-    def read_range_in_str(self, s: str, r: Range) -> str:
+    def read_range_in_str(cls, s: str, r: Range) -> str:
         lines = s.split("\n")[r.start.line : r.end.line + 1]
         if len(lines) == 0:
             return ""
@@ -165,7 +165,7 @@ class FileSystem(AbstractModel):
         if s.endswith("\n"):
             lines.append("")
 
-        if len(lines) == 0:
+        if not lines:
             lines = [""]
 
         end = Position(line=edit.range.end.line, character=edit.range.end.character)
@@ -273,7 +273,7 @@ class FileSystem(AbstractModel):
             backward_edits.reverse()
             backward = SequentialFileSystemEdit(edits=backward_edits)
         else:
-            raise TypeError("Unknown FileSystemEdit type: " + str(type(edit)))
+            raise TypeError(f"Unknown FileSystemEdit type: {str(type(edit))}")
 
         return EditDiff(forward=edit, backward=backward)
 
@@ -326,9 +326,7 @@ class RealFileSystem(FileSystem):
             # Walk
             paths = []
             for root, dirs, files in os.walk(path):
-                for f in files:
-                    paths.append(os.path.join(root, f))
-
+                paths.extend(os.path.join(root, f) for f in files)
             return paths
         return list(map(lambda x: os.path.join(path, x), os.listdir(path)))
 

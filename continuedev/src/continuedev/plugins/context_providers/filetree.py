@@ -13,13 +13,10 @@ class Directory(BaseModel):
 
 
 def format_file_tree(tree: Directory, indentation: str = "") -> str:
-    result = ""
-    for file in tree.files:
-        result += f"{indentation}{file}\n"
-
+    result = "".join(f"{indentation}{file}\n" for file in tree.files)
     for directory in tree.directories:
         result += f"{indentation}{directory.name}/\n"
-        result += format_file_tree(directory, indentation + "  ")
+        result += format_file_tree(directory, f"{indentation}  ")
 
     return result
 
@@ -83,7 +80,7 @@ class FileTreeContextProvider(ContextProvider):
         return [await self._filetree_context_item()]
 
     async def get_item(self, id: ContextItemId, query: str) -> ContextItem:
-        if not id.provider_title == self.title:
+        if id.provider_title != self.title:
             raise Exception("Invalid provider title for item")
 
         return await self._filetree_context_item()

@@ -12,13 +12,13 @@ def calculate_diff(filepath: str, original: str, updated: str) -> List[FileEdit]
     for tag, i1, i2, j1, j2 in s.get_opcodes():
         i1, i2, j1, j2 = i1 + offset, i2 + offset, j1 + offset, j2 + offset
         replacement = updated[j1:j2]
-        if tag == "equal":
-            pass
-        elif tag == "delete":
+        if tag == "delete":
             edits.append(
                 FileEdit.from_deletion(filepath, Range.from_indices(original, i1, i2))
             )
             offset -= i2 - i1
+        elif tag == "equal":
+            pass
         elif tag == "insert":
             edits.append(
                 FileEdit.from_insertion(
@@ -36,7 +36,7 @@ def calculate_diff(filepath: str, original: str, updated: str) -> List[FileEdit]
             )
             offset += (j2 - j1) - (i2 - i1)
         else:
-            raise Exception("Unexpected difflib.SequenceMatcher tag: " + tag)
+            raise Exception(f"Unexpected difflib.SequenceMatcher tag: {tag}")
 
     return edits
 
@@ -59,7 +59,7 @@ def calculate_diff2(filepath: str, original: str, updated: str) -> List[FileEdit
     edits = []
     max_iterations = 1000
     i = 0
-    while not original == updated:
+    while original != updated:
         # TODO - For some reason it can't handle a single newline at the end of the file?
         s = difflib.SequenceMatcher(None, original, updated)
         opcodes = s.get_opcodes()
@@ -89,13 +89,13 @@ def calculate_diff2(filepath: str, original: str, updated: str) -> List[FileEdit
                     )
                 )
             else:
-                raise Exception("Unexpected difflib.SequenceMatcher tag: " + tag)
+                raise Exception(f"Unexpected difflib.SequenceMatcher tag: {tag}")
             break
-
-        original = apply_edit_to_str(original, edits[-1])
 
         i += 1
         if i > max_iterations:
+            original = apply_edit_to_str(original, edits[-1])
+
             raise Exception("Max iterations reached")
 
     return edits
@@ -121,7 +121,7 @@ def apply_edit_to_str(s: str, edit: FileEdit) -> str:
     if s.endswith("\n"):
         lines.append("")
 
-    if len(lines) == 0:
+    if not lines:
         lines = [""]
 
     end = Position(line=edit.range.end.line, character=edit.range.end.character)

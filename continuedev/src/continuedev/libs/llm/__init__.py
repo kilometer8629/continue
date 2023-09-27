@@ -172,15 +172,14 @@ class LLM(ContinueBaseModel):
                 connector=aiohttp.TCPConnector(verify_ssl=False),
                 timeout=aiohttp.ClientTimeout(total=self.timeout),
             )
-        else:
-            ca_bundle_path = (
-                certifi.where() if self.ca_bundle_path is None else self.ca_bundle_path
-            )
-            ssl_context = ssl.create_default_context(cafile=ca_bundle_path)
-            return aiohttp.ClientSession(
-                connector=aiohttp.TCPConnector(ssl_context=ssl_context),
-                timeout=aiohttp.ClientTimeout(total=self.timeout),
-            )
+        ca_bundle_path = (
+            certifi.where() if self.ca_bundle_path is None else self.ca_bundle_path
+        )
+        ssl_context = ssl.create_default_context(cafile=ca_bundle_path)
+        return aiohttp.ClientSession(
+            connector=aiohttp.TCPConnector(ssl_context=ssl_context),
+            timeout=aiohttp.ClientTimeout(total=self.timeout),
+        )
 
     def collect_args(self, options: CompletionOptions) -> Dict[str, Any]:
         """Collect the arguments for the LLM."""

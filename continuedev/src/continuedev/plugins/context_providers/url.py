@@ -75,25 +75,23 @@ class URLContextProvider(ContextProvider):
         return [self.DYNAMIC_CONTEXT_ITEM] + self._static_url_context_items
 
     async def get_item(self, id: ContextItemId, query: str) -> ContextItem:
-        # Check if the item is a static item
-        matching_static_item = next(
+        if matching_static_item := next(
             (
                 item
                 for item in self._static_url_context_items
                 if item.description.id.item_id == id.item_id
             ),
             None,
-        )
-        if matching_static_item:
+        ):
             return matching_static_item
 
         # Check if the item is the dynamic item
-        if not id.provider_title == self.title:
+        if id.provider_title != self.title:
             raise Exception("Invalid provider title for item")
 
         # Generate the dynamic item
         url = query.lstrip("url ").strip()
-        if url is None or url == "":
+        if url is None or not url:
             return None
         content, title = self._get_url_text_contents_and_title(url)
 

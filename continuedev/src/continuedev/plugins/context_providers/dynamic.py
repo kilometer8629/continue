@@ -37,10 +37,10 @@ class DynamicProvider(ContextProvider, ABC):
         return [self.BASE_CONTEXT_ITEM]
 
     async def get_item(self, id: ContextItemId, query: str) -> ContextItem:
-        if not id.provider_title == self.title:
+        if id.provider_title != self.title:
             raise Exception("Invalid provider title for item")
 
-        query = query.lstrip(self.title + " ")
+        query = query.lstrip(f"{self.title} ")
         results = await self.get_content(query)
 
         ctx_item = self.BASE_CONTEXT_ITEM.copy()

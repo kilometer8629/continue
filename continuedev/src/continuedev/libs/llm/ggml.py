@@ -137,18 +137,17 @@ class GGML(LLM):
 
         async with self.create_client_session() as client_session:
             async with client_session.post(
-                f"{self.server_url}/v1/completions",
-                json={
-                    "prompt": prompt,
-                    **args,
-                },
-                headers=self.get_headers(),
-                proxy=self.proxy,
-            ) as resp:
+                        f"{self.server_url}/v1/completions",
+                        json={
+                            "prompt": prompt,
+                            **args,
+                        },
+                        headers=self.get_headers(),
+                        proxy=self.proxy,
+                    ) as resp:
                 text = await resp.text()
                 try:
-                    completion = json.loads(text)["choices"][0]["text"]
-                    return completion
+                    return json.loads(text)["choices"][0]["text"]
                 except Exception as e:
                     raise Exception(
                         f"Error calling /completion endpoint: {e}\n\nResponse text: {text}"

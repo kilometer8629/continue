@@ -33,15 +33,13 @@ CONTEXT_PROVIDER_MODULES = [
 def import_llm_module(module_name, module_title):
     module_name = f"continuedev.src.continuedev.libs.llm.{module_name}"
     module = importlib.import_module(module_name)
-    obj = getattr(module, module_title)
-    return obj
+    return getattr(module, module_title)
 
 
 def import_context_provider_module(module_name, module_title):
     module_name = f"continuedev.src.continuedev.plugins.context_providers.{module_name}"
     module = importlib.import_module(module_name)
-    obj = getattr(module, module_title)
-    return obj
+    return getattr(module, module_title)
 
 
 def docs_from_schema(schema, filepath, ignore_properties=[], inherited=[]):

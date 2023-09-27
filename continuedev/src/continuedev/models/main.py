@@ -33,11 +33,7 @@ class Position(BaseModel):
     def from_index(string: str, index: int) -> "Position":
         """Convert index in string to line and character"""
         line = string.count("\n", 0, index)
-        if line == 0:
-            character = index
-        else:
-            character = index - string.rindex("\n", 0, index) - 1
-
+        character = index if line == 0 else index - string.rindex("\n", 0, index) - 1
         return Position(line=line, character=character)
 
     @staticmethod
@@ -84,20 +80,21 @@ class Range(BaseModel):
     def indices_in_string(self, string: str) -> Tuple[int, int]:
         """Get the start and end indices of this range in the string"""
         lines = string.splitlines()
-        if len(lines) == 0:
+        if not lines:
             return (0, 0)
 
         start_index = (
-            sum([len(line) + 1 for line in lines[: self.start.line]])
+            sum(len(line) + 1 for line in lines[: self.start.line])
             + self.start.character
         )
         end_index = (
-            sum([len(line) + 1 for line in lines[: self.end.line]]) + self.end.character
+            sum(len(line) + 1 for line in lines[: self.end.line])
+            + self.end.character
         )
         return (start_index, end_index)
 
     def overlaps_with(self, other: "Range") -> bool:
-        return not (self.end < other.start or self.start > other.end)
+        return self.end >= other.start and self.start <= other.end
 
     def to_full_lines(self) -> "Range":
         return Range(
@@ -114,7 +111,7 @@ class Range(BaseModel):
         )
 
     def contains(self, position: Position) -> bool:
-        return self.start <= position and position <= self.end
+        return self.start <= position <= self.end
 
     def merge_with(self, other: "Range") -> "Range":
         return Range(
@@ -140,10 +137,10 @@ class Range(BaseModel):
 
     @staticmethod
     def from_entire_file(content: str) -> "Range":
-        lines = content.splitlines()
-        if len(lines) == 0:
+        if lines := content.splitlines():
+            return Range.from_shorthand(0, 0, len(lines), 0)
+        else:
             return Range.from_shorthand(0, 0, 0, 0)
-        return Range.from_shorthand(0, 0, len(lines), 0)
 
     @staticmethod
     def from_snippet_in_file(content: str, snippet: str) -> "Range":

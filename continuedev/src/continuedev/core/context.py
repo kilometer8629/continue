@@ -222,10 +222,10 @@ class ContextManager:
         Returns all of the selected ContextItems.
         """
         return sum(
-            [
+            (
                 await provider.get_selected_items()
                 for provider in self.context_providers.values()
-            ],
+            ),
             [],
         )
 
@@ -234,10 +234,10 @@ class ContextManager:
         Returns chat messages from each provider.
         """
         return sum(
-            [
+            (
                 await provider.get_chat_messages()
                 for provider in self.context_providers.values()
-            ],
+            ),
             [],
         )
 
@@ -349,7 +349,7 @@ class ContextManager:
                         }
                         for item in context_items
                     ]
-                    if len(documents) > 0:
+                    if documents:
                         await globalSearchIndex.add_documents(documents)
 
                     return len(documents)

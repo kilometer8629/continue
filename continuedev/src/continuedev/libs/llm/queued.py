@@ -61,8 +61,7 @@ class QueuedLLM(LLM):
 
     async def _complete(self, prompt: str, options: CompletionOptions):
         async with self._lock:
-            resp = await self.llm._complete(prompt, options)
-            return resp
+            return await self.llm._complete(prompt, options)
 
     async def _stream_complete(self, prompt: str, options: CompletionOptions):
         async with self._lock:

@@ -249,7 +249,7 @@ class IdeProtocolServer(AbstractIdeProtocolServer):
             self.onMainUserInput(data["input"])
         elif message_type == "deleteAtIndex":
             self.onDeleteAtIndex(data["index"])
-        elif message_type in [
+        elif message_type in {
             "highlightedCode",
             "openFiles",
             "visibleFiles",
@@ -260,7 +260,7 @@ class IdeProtocolServer(AbstractIdeProtocolServer):
             "getTerminalContents",
             "listDirectoryContents",
             "fileExists",
-        ]:
+        }:
             self.sub_queue.post(message_type, data)
         elif message_type == "workspaceDirectory":
             self.workspace_directory = data["workspaceDirectory"]
@@ -335,11 +335,11 @@ class IdeProtocolServer(AbstractIdeProtocolServer):
         responses = await asyncio.gather(
             *[
                 self._receive_json(ShowSuggestionResponse)
-                for i in range(len(suggestions))
+                for _ in range(len(suggestions))
             ]
-        )  # WORKING ON THIS FLOW HERE. Fine now to just await for response, instead of doing something fancy with a "waiting" state on the autopilot.
+        )
         # Just need connect the suggestionId to the IDE (and the gui)
-        return any([r.accepted for r in responses])
+        return any(r.accepted for r in responses)
 
     def on_error(self, e: Exception) -> Coroutine:
         err_msg = "\n".join(traceback.format_exception(e))
@@ -584,7 +584,7 @@ class IdeProtocolServer(AbstractIdeProtocolServer):
                 diffs.append(edit_diff)
             backward = EditDiff.from_sequence(diffs=diffs).backward
         else:
-            raise TypeError("Unknown FileSystemEdit type: " + str(type(edit)))
+            raise TypeError(f"Unknown FileSystemEdit type: {str(type(edit))}")
 
         return EditDiff(forward=edit, backward=backward)
 

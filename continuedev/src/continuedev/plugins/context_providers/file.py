@@ -108,10 +108,7 @@ class FileContextProvider(ContextProvider):
         if contents is None:
             return []
 
-        absolute_filepaths: List[str] = []
-        for filepath in contents[:1000]:
-            absolute_filepaths.append(filepath)
-
+        absolute_filepaths: List[str] = list(contents[:1000])
         items = await asyncio.gather(
             *[
                 self.get_context_item_for_filepath(filepath)

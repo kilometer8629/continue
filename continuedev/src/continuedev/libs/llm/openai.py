@@ -139,13 +139,12 @@ class OpenAI(LLM):
     async def _complete(self, prompt: str, options):
         args = self.collect_args(options)
 
-        if args["model"] in CHAT_MODELS:
-            resp = await openai.ChatCompletion.acreate(
-                messages=[{"role": "user", "content": prompt}],
-                **args,
-            )
-            return resp.choices[0].message.content
-        else:
+        if args["model"] not in CHAT_MODELS:
             return (
                 (await openai.Completion.acreate(prompt=prompt, **args)).choices[0].text
             )
+        resp = await openai.ChatCompletion.acreate(
+            messages=[{"role": "user", "content": prompt}],
+            **args,
+        )
+        return resp.choices[0].message.content

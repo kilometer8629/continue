@@ -125,12 +125,12 @@ class ParallelEditStep(Step):
         ]
         # Sort in reverse order so that we don't mess up the ranges
         ranges_in_file.sort(key=lambda x: x.range.start.line, reverse=True)
-        for i in range(len(ranges_in_file)):
-            await self.single_edit(sdk=sdk, range_in_file=ranges_in_file[i])
+        for item in ranges_in_file:
+            await self.single_edit(sdk=sdk, range_in_file=item)
 
     async def run(self, sdk: ContinueSDK):
-        tasks = []
-        for filepath in set([rif.filepath for rif in self.range_in_files]):
-            tasks.append(self.edit_file(sdk=sdk, filepath=filepath))
-
+        tasks = [
+            self.edit_file(sdk=sdk, filepath=filepath)
+            for filepath in {rif.filepath for rif in self.range_in_files}
+        ]
         await asyncio.gather(*tasks)

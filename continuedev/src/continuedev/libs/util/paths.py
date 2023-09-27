@@ -75,7 +75,7 @@ def getSessionsListFilePath():
 
 
 def migrateConfigFile(existing: str) -> Optional[str]:
-    if existing.strip() == "":
+    if not existing.strip():
         return default_config
 
     migrated = (
@@ -84,10 +84,7 @@ def migrateConfigFile(existing: str) -> Optional[str]:
         .replace("unused=", "saved=")
         .replace("medium=", "summarize=")
     )
-    if migrated != existing:
-        return migrated
-
-    return None
+    return migrated if migrated != existing else None
 
 
 def getConfigFilePath() -> str:

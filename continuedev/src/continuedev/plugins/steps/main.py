@@ -101,10 +101,7 @@ class FasterEditHighlightedCodeStep(Step):
         code_string = enc_dec.encode()
         prompt = self._prompt.format(code=code_string, user_input=self.user_input)
 
-        rif_dict = {}
-        for rif in range_in_files:
-            rif_dict[rif.filepath] = rif.contents
-
+        rif_dict = {rif.filepath: rif.contents for rif in range_in_files}
         completion = await sdk.models.summarize.complete(prompt)
 
         # Temporarily doing this to generate description.
@@ -164,7 +161,7 @@ class FasterEditHighlightedCodeStep(Step):
             diff = await sdk.apply_filesystem_edit(file_edit)
             self._edit_diffs.append(diff)
 
-        for filepath in set([file_edit.filepath for file_edit in file_edits]):
+        for filepath in {file_edit.filepath for file_edit in file_edits}:
             await sdk.ide.saveFile(filepath)
             await sdk.ide.setFileOpen(filepath)
 
@@ -199,10 +196,7 @@ class StarCoderEditHighlightedCodeStep(Step):
                 for filepath, content in contents.items()
             ]
 
-        rif_dict = {}
-        for rif in range_in_files:
-            rif_dict[rif.filepath] = rif.contents
-
+        rif_dict = {rif.filepath: rif.contents for rif in range_in_files}
         for rif in range_in_files:
             prompt = self._prompt.format(
                 code=rif.contents, user_request=self.user_input
@@ -211,7 +205,7 @@ class StarCoderEditHighlightedCodeStep(Step):
             if found_highlighted_code:
                 full_file_contents = await sdk.ide.readFile(rif.filepath)
                 segs = full_file_contents.split(rif.contents)
-                prompt = f"<file_prefix>{segs[0]}<file_suffix>{segs[1]}" + prompt
+                prompt = f"<file_prefix>{segs[0]}<file_suffix>{segs[1]}{prompt}"
 
             completion = str(await sdk.models.starcoder.complete(prompt))
             eot_token = "<|endoftext|>"
@@ -337,7 +331,7 @@ class EditHighlightedCodeStep(Step):
             )
 
         # If all of the ranges are point ranges, only edit the last one
-        if all([rif.range.start == rif.range.end for rif in range_in_files]):
+        if all(rif.range.start == rif.range.end for rif in range_in_files):
             range_in_files = [range_in_files[-1]]
 
         range_in_files = list(

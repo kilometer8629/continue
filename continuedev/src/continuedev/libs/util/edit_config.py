@@ -16,8 +16,7 @@ def get_config_source():
 def load_red():
     source_code = get_config_source()
 
-    red = redbaron.RedBaron(source_code)
-    return red
+    return redbaron.RedBaron(source_code)
 
 
 def get_config_node(red):
@@ -87,9 +86,7 @@ def escape_string(string: str) -> str:
 
 
 def display_val(v: Any):
-    if isinstance(v, str):
-        return f'"{escape_string(v)}"'
-    return str(v)
+    return f'"{escape_string(v)}"' if isinstance(v, str) else str(v)
 
 
 def display_llm_class(llm, new: bool = False):
@@ -110,7 +107,7 @@ def create_obj_node(
     args = [f"{key}={value}" for key, value in args.items()]
     t = "\t" * tabs
     new_line = "\n\t" + t
-    sep = "," + new_line
+    sep = f",{new_line}"
 
     return redbaron.RedBaron(f"{class_name}({new_line}{sep.join(args)}\n{t})")[0]
 

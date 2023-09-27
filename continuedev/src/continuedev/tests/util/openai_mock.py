@@ -121,7 +121,7 @@ async def mock_chat_completion(item: ChatBody):
 
 
 def start_openai(port: int = 8000):
-    server = subprocess.Popen(
+    return subprocess.Popen(
         [
             "uvicorn",
             "openai_mock:openai",
@@ -132,7 +132,6 @@ def start_openai(port: int = 8000):
         ],
         cwd=os.path.dirname(__file__),
     )
-    return server
 
 
 if __name__ == "__main__":

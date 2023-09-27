@@ -112,7 +112,7 @@ class SolvePythonTracebackStep(Step):
         external_func_source = get_func_source_for_frame(next_frame)
         docs = await fetch_docs_for_external_call(external_call, next_frame)
 
-        prompt = dedent(
+        return dedent(
             f"""\
                     I got the following error:
                 
@@ -137,8 +137,6 @@ class SolvePythonTracebackStep(Step):
                     Explain how to fix the error.
                     """
         )
-
-        return prompt
 
     async def normal_traceback_prompt(
         self, sdk: ContinueSDK, tb: Traceback, tb_string: str

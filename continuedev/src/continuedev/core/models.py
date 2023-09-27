@@ -82,9 +82,7 @@ class Models(BaseModel):
 
     @property
     def system_message(self) -> Optional[str]:
-        if self.sdk:
-            return self.sdk.config.system_message
-        return None
+        return self.sdk.config.system_message if self.sdk else None
 
     def set_system_message(self, msg: str):
         for model in self.all_models:

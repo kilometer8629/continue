@@ -20,7 +20,7 @@ def filter_ignored_files(files: List[str], root_dir: str):
             or file.startswith("archive")
         ):
             continue  # nice
-        yield root_dir + "/" + file
+        yield f"{root_dir}/{file}"
 
 
 def get_git_ignored_files(root_dir: str):

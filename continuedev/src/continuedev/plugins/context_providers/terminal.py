@@ -38,7 +38,7 @@ class TerminalContextProvider(ContextProvider):
         return [self._terminal_context_item()]
 
     async def get_item(self, id: ContextItemId, query: str) -> ContextItem:
-        if not id.provider_title == self.title:
+        if id.provider_title != self.title:
             raise Exception("Invalid provider title for item")
 
         terminal_contents = await self.sdk.ide.getTerminalContents(
